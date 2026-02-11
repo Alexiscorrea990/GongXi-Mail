@@ -1,0 +1,149 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// 管理员
+// ============================================
+model Admin {
+  id           Int       @id @default(autoincrement())
+  username     String    @unique @db.VarChar(50)
+  passwordHash String    @map("password_hash") @db.VarChar(255)
+  email        String?   @unique @db.VarChar(100)
+  role         Role      @default(ADMIN)
+  status       Status    @default(ACTIVE)
+  lastLoginAt  DateTime? @map("last_login_at")
+  lastLoginIp  String?   @map("last_login_ip") @db.VarChar(45)
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  apiKeys ApiKey[]
+
+  @@map("admins")
+}
+
+// ============================================
+// API Key
+// ============================================
+model ApiKey {
+  id          Int       @id @default(autoincrement())
+  name        String    @db.VarChar(100)
+  keyHash     String    @unique @map("key_hash") @db.VarChar(64)
+  keyPrefix   String    @map("key_prefix") @db.VarChar(8)
+  permissions Json?
+  rateLimit   Int       @default(60) @map("rate_limit")
+  status      Status    @default(ACTIVE)
+  expiresAt   DateTime? @map("expires_at")
+  lastUsedAt  DateTime? @map("last_used_at")
+  usageCount  BigInt    @default(0) @map("usage_count")
+  createdBy   Int       @map("created_by")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  creator     Admin        @relation(fields: [createdBy], references: [id])
+  emailUsages EmailUsage[]
+  apiLogs     ApiLog[]
+
+  @@map("api_keys")
+}
+
+// ============================================
+// 邮箱分组
+// ============================================
+model EmailGroup {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique @db.VarChar(50)
+  description String?  @db.VarChar(255)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  emails EmailAccount[]
+
+  @@map("email_groups")
+}
+
+// ============================================
+// 邮箱账户
+// ============================================
+model EmailAccount {
+  id           Int         @id @default(autoincrement())
+  email        String      @unique @db.VarChar(255)
+  clientId     String      @map("client_id") @db.VarChar(100)
+  password     String?     @db.VarChar(255)
+  refreshToken String      @map("refresh_token") @db.Text
+  status       EmailStatus @default(ACTIVE)
+  groupId      Int?        @map("group_id")
+  lastCheckAt  DateTime?   @map("last_check_at")
+  errorMessage String?     @map("error_message") @db.Text
+  createdAt    DateTime    @default(now()) @map("created_at")
+  updatedAt    DateTime    @updatedAt @map("updated_at")
+
+  group   EmailGroup?  @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  usages  EmailUsage[]
+  apiLogs ApiLog[]
+
+  @@map("email_accounts")
+}
+
+// ============================================
+// 邮箱使用记录（邮箱池）
+// ============================================
+model EmailUsage {
+  id             Int      @id @default(autoincrement())
+  apiKeyId       Int      @map("api_key_id")
+  emailAccountId Int      @map("email_account_id")
+  usedAt         DateTime @default(now()) @map("used_at")
+
+  apiKey       ApiKey       @relation(fields: [apiKeyId], references: [id], onDelete: Cascade)
+  emailAccount EmailAccount @relation(fields: [emailAccountId], references: [id], onDelete: Cascade)
+
+  @@unique([apiKeyId, emailAccountId])
+  @@map("email_usage")
+}
+
+// ============================================
+// API 调用日志
+// ============================================
+model ApiLog {
+  id             BigInt    @id @default(autoincrement())
+  apiKeyId       Int?      @map("api_key_id")
+  emailAccountId Int?      @map("email_account_id")
+  action         String    @db.VarChar(50)
+  requestIp      String?   @map("request_ip") @db.VarChar(45)
+  responseCode   Int?      @map("response_code")
+  responseTimeMs Int?      @map("response_time_ms")
+  metadata       Json?
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  apiKey       ApiKey?       @relation(fields: [apiKeyId], references: [id], onDelete: SetNull)
+  emailAccount EmailAccount? @relation(fields: [emailAccountId], references: [id], onDelete: SetNull)
+
+  @@index([apiKeyId])
+  @@index([emailAccountId])
+  @@index([createdAt])
+  @@map("api_logs")
+}
+
+// ============================================
+// 枚举
+// ============================================
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+}
+
+enum Status {
+  ACTIVE
+  DISABLED
+}
+
+enum EmailStatus {
+  ACTIVE
+  ERROR
+  DISABLED
+}
