@@ -5,7 +5,7 @@ export const createEmailSchema = z.object({
     clientId: z.string().min(1),
     refreshToken: z.string().min(1),
     password: z.string().optional(),
-    groupId: z.number().int().positive().optional(),
+    groupId: z.coerce.number().int().positive().optional(),
 });
 
 export const updateEmailSchema = z.object({
@@ -14,7 +14,7 @@ export const updateEmailSchema = z.object({
     refreshToken: z.string().min(1).optional(),
     password: z.string().optional(),
     status: z.enum(['ACTIVE', 'ERROR', 'DISABLED']).optional(),
-    groupId: z.number().int().positive().nullable().optional(),
+    groupId: z.union([z.coerce.number().int().positive(), z.null()]).optional(),
 });
 
 export const listEmailSchema = z.object({
@@ -29,7 +29,7 @@ export const listEmailSchema = z.object({
 export const importEmailSchema = z.object({
     content: z.string().min(1),
     separator: z.string().default('----'),
-    groupId: z.number().int().positive().optional(),
+    groupId: z.coerce.number().int().positive().optional(),
 });
 
 export type CreateEmailInput = z.infer<typeof createEmailSchema>;

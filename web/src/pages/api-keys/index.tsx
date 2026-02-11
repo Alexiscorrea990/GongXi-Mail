@@ -171,12 +171,12 @@ const ApiKeysPage: React.FC = () => {
     const handleSubmit = async () => {
         try {
             const values = await form.validateFields();
-            const submitData = {
-                ...values,
-                expiresAt: values.expiresAt ? values.expiresAt.toISOString() : null,
-            };
 
             if (editingId) {
+                const submitData = {
+                    ...values,
+                    expiresAt: values.expiresAt ? values.expiresAt.toISOString() : null,
+                };
                 const res = await apiKeyApi.update(editingId, submitData);
                 if (res.code === 200) {
                     message.success('更新成功');
@@ -186,6 +186,10 @@ const ApiKeysPage: React.FC = () => {
                     message.error(res.message);
                 }
             } else {
+                const submitData = {
+                    ...values,
+                    expiresAt: values.expiresAt ? values.expiresAt.toISOString() : undefined,
+                };
                 const res = await apiKeyApi.create(submitData);
                 if (res.code === 200) {
                     setModalVisible(false);

@@ -110,6 +110,14 @@ const EmailsPage: React.FC = () => {
     const [assignGroupModalVisible, setAssignGroupModalVisible] = useState(false);
     const [assignTargetGroupId, setAssignTargetGroupId] = useState<number | undefined>(undefined);
 
+    const toOptionalNumber = (value: unknown): number | undefined => {
+        if (value === undefined || value === null || value === '') {
+            return undefined;
+        }
+        const parsed = Number(value);
+        return Number.isFinite(parsed) ? parsed : undefined;
+    };
+
     const fetchGroups = useCallback(async () => {
         const result = await requestData<EmailGroup[]>(
             () => groupApi.getList(),
@@ -216,9 +224,15 @@ const EmailsPage: React.FC = () => {
     const handleSubmit = async () => {
         try {
             const values = await form.validateFields();
+            const normalizedGroupId =
+                values.groupId === null ? null : toOptionalNumber(values.groupId);
 
             if (editingId) {
-                const res = await emailApi.update(editingId, values);
+                const submitData = {
+                    ...values,
+                    groupId: normalizedGroupId ?? null,
+                };
+                const res = await emailApi.update(editingId, submitData);
                 if (res.code === 200) {
                     message.success('更新成功');
                     setModalVisible(false);
@@ -228,7 +242,11 @@ const EmailsPage: React.FC = () => {
                     message.error(res.message);
                 }
             } else {
-                const res = await emailApi.create(values);
+                const submitData = {
+                    ...values,
+                    groupId: toOptionalNumber(values.groupId),
+                };
+                const res = await emailApi.create(submitData);
                 if (res.code === 200) {
                     message.success('创建成功');
                     setModalVisible(false);
@@ -250,7 +268,11 @@ const EmailsPage: React.FC = () => {
         }
 
         try {
-            const res = await emailApi.import(importContent, separator, importGroupId);
+            const res = await emailApi.import(
+                importContent,
+                separator,
+                toOptionalNumber(importGroupId)
+            );
             if (res.code === 200) {
                 message.success(res.message);
                 setImportModalVisible(false);
@@ -269,7 +291,7 @@ const EmailsPage: React.FC = () => {
     const handleExport = async () => {
         try {
             const ids = selectedRowKeys.length > 0 ? selectedRowKeys as number[] : undefined;
-            const groupId = ids ? undefined : filterGroupId;
+            const groupId = ids ? undefined : toOptionalNumber(filterGroupId);
             const res = await emailApi.export(ids, separator, groupId);
             if (res.code !== 200) {
                 message.error(res.message || '导出失败');
@@ -615,7 +637,10 @@ const EmailsPage: React.FC = () => {
                                             allowClear
                                             style={{ width: 160 }}
                                             value={filterGroupId}
-                                            onChange={(val: number | undefined) => { setFilterGroupId(val); setPage(1); }}
+                                            onChange={(val: number | string | undefined) => {
+                                                setFilterGroupId(toOptionalNumber(val));
+                                                setPage(1);
+                                            }}
                                         >
                                             {groups.map((g: EmailGroup) => (
                                                 <Select.Option key={g.id} value={g.id}>{g.name} ({g.emailCount})</Select.Option>
@@ -771,7 +796,7 @@ const EmailsPage: React.FC = () => {
                         placeholder="导入到分组（可选）"
                         allowClear
                         value={importGroupId}
-                        onChange={(value: number | undefined) => setImportGroupId(value)}
+                        onChange={(value: number | string | undefined) => setImportGroupId(toOptionalNumber(value))}
                         style={{ width: 260 }}
                     >
                         {groups.map((group: EmailGroup) => (

@@ -135,8 +135,8 @@ export const apiKeyService = {
 
         const { expiresAt, ...rest } = input;
         const updateData: Prisma.ApiKeyUpdateInput = { ...rest };
-        if (expiresAt) {
-            updateData.expiresAt = new Date(expiresAt);
+        if (expiresAt !== undefined) {
+            updateData.expiresAt = expiresAt ? new Date(expiresAt) : null;
         }
 
         const apiKey = await prisma.apiKey.update({

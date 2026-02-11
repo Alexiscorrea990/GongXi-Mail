@@ -3,7 +3,7 @@ import { z } from 'zod';
 export const createApiKeySchema = z.object({
     name: z.string().min(1).max(100),
     rateLimit: z.number().min(1).max(10000).optional(),
-    expiresAt: z.string().datetime().optional(),
+    expiresAt: z.string().datetime().nullable().optional(),
     permissions: z.record(z.boolean()).optional(),
 });
 
