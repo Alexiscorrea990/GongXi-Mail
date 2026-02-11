@@ -61,9 +61,14 @@ const emailRoutes: FastifyPluginAsync = async (fastify) => {
 
     // 导出
     fastify.get('/export', async (request) => {
-        const { ids, separator } = request.query as { ids?: string; separator?: string };
-        const idArray = ids?.split(',').map(Number).filter(Boolean);
-        const content = await emailService.export(idArray, separator);
+        const query = z.object({
+            ids: z.string().optional(),
+            separator: z.string().optional(),
+            groupId: z.coerce.number().int().positive().optional(),
+        }).parse(request.query);
+
+        const idArray = query.ids?.split(',').map(Number).filter((id: number) => Number.isFinite(id) && id > 0);
+        const content = await emailService.export(idArray, query.separator, query.groupId);
         return { success: true, data: { content } };
     });
 

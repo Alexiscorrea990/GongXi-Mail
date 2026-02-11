@@ -258,25 +258,25 @@ export const emailApi = {
     getById: <T = Record<string, unknown>>(id: number, includeSecrets?: boolean) =>
         requestGet<T>(`/admin/emails/${id}`, { params: { secrets: includeSecrets } }),
 
-    create: (data: { email: string; clientId: string; refreshToken: string }) =>
-        requestPost<Record<string, unknown>, { email: string; clientId: string; refreshToken: string }>(
+    create: (data: { email: string; clientId: string; refreshToken: string; password?: string; groupId?: number }) =>
+        requestPost<Record<string, unknown>, { email: string; clientId: string; refreshToken: string; password?: string; groupId?: number }>(
             '/admin/emails',
             data
         ),
 
-    import: (content: string, separator?: string) =>
-        requestPost<Record<string, unknown>, { content: string; separator?: string }>(
+    import: (content: string, separator?: string, groupId?: number) =>
+        requestPost<Record<string, unknown>, { content: string; separator?: string; groupId?: number }>(
             '/admin/emails/import',
-            { content, separator }
+            { content, separator, groupId }
         ),
 
-    export: (ids?: number[], separator?: string) =>
+    export: (ids?: number[], separator?: string, groupId?: number) =>
         requestGet<{ content: string }>('/admin/emails/export', {
-            params: { ids: ids?.join(','), separator },
+            params: { ids: ids?.join(','), separator, groupId },
         }),
 
-    update: (id: number, data: { email?: string; clientId?: string; refreshToken?: string; status?: string }) =>
-        requestPut<Record<string, unknown>, { email?: string; clientId?: string; refreshToken?: string; status?: string }>(
+    update: (id: number, data: { email?: string; clientId?: string; refreshToken?: string; password?: string; status?: string; groupId?: number | null }) =>
+        requestPut<Record<string, unknown>, { email?: string; clientId?: string; refreshToken?: string; password?: string; status?: string; groupId?: number | null }>(
             `/admin/emails/${id}`,
             data
         ),

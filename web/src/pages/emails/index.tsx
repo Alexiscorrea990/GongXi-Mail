@@ -91,6 +91,7 @@ const EmailsPage: React.FC = () => {
     const [filterGroupId, setFilterGroupId] = useState<number | undefined>(undefined);
     const [importContent, setImportContent] = useState('');
     const [separator, setSeparator] = useState('----');
+    const [importGroupId, setImportGroupId] = useState<number | undefined>(undefined);
     const [mailList, setMailList] = useState<MailItem[]>([]);
     const [mailLoading, setMailLoading] = useState(false);
     const [currentEmail, setCurrentEmail] = useState<string>('');
@@ -123,7 +124,7 @@ const EmailsPage: React.FC = () => {
     const fetchData = useCallback(async () => {
         setLoading(true);
         const params: { page: number; pageSize: number; keyword: string; groupId?: number } = { page, pageSize, keyword };
-        if (filterGroupId) params.groupId = filterGroupId;
+        if (filterGroupId !== undefined) params.groupId = filterGroupId;
 
         const result = await requestData<EmailListResult>(
             () => emailApi.getList(params),
@@ -167,6 +168,7 @@ const EmailsPage: React.FC = () => {
                     clientId: details.clientId,
                     refreshToken: details.refreshToken,
                     status: details.status,
+                    groupId: details.groupId,
                 });
                 setModalVisible(true);
             }
@@ -181,6 +183,7 @@ const EmailsPage: React.FC = () => {
             if (res.code === 200) {
                 message.success('删除成功');
                 fetchData();
+                fetchGroups();
             } else {
                 message.error(res.message);
             }
@@ -201,6 +204,7 @@ const EmailsPage: React.FC = () => {
                 message.success(`成功删除 ${res.data.deleted} 个邮箱`);
                 setSelectedRowKeys([]);
                 fetchData();
+                fetchGroups();
             } else {
                 message.error(res.message);
             }
@@ -219,6 +223,7 @@ const EmailsPage: React.FC = () => {
                     message.success('更新成功');
                     setModalVisible(false);
                     fetchData();
+                    fetchGroups();
                 } else {
                     message.error(res.message);
                 }
@@ -228,6 +233,7 @@ const EmailsPage: React.FC = () => {
                     message.success('创建成功');
                     setModalVisible(false);
                     fetchData();
+                    fetchGroups();
                 } else {
                     message.error(res.message);
                 }
@@ -244,12 +250,14 @@ const EmailsPage: React.FC = () => {
         }
 
         try {
-            const res = await emailApi.import(importContent, separator);
+            const res = await emailApi.import(importContent, separator, importGroupId);
             if (res.code === 200) {
                 message.success(res.message);
                 setImportModalVisible(false);
                 setImportContent('');
+                setImportGroupId(undefined);
                 fetchData();
+                fetchGroups();
             } else {
                 message.error(res.message);
             }
@@ -261,7 +269,8 @@ const EmailsPage: React.FC = () => {
     const handleExport = async () => {
         try {
             const ids = selectedRowKeys.length > 0 ? selectedRowKeys as number[] : undefined;
-            const res = await emailApi.export(ids, separator);
+            const groupId = ids ? undefined : filterGroupId;
+            const res = await emailApi.export(ids, separator, groupId);
             if (res.code !== 200) {
                 message.error(res.message || '导出失败');
                 return;
@@ -718,6 +727,15 @@ const EmailsPage: React.FC = () => {
                     >
                         <TextArea rows={4} placeholder="OAuth2 Refresh Token" />
                     </Form.Item>
+                    <Form.Item name="groupId" label="所属分组">
+                        <Select placeholder="可选：选择分组" allowClear>
+                            {groups.map((group: EmailGroup) => (
+                                <Select.Option key={group.id} value={group.id}>
+                                    {group.name}
+                                </Select.Option>
+                            ))}
+                        </Select>
+                    </Form.Item>
                     <Form.Item name="status" label="状态" initialValue="ACTIVE">
                         <Select>
                             <Select.Option value="ACTIVE">正常</Select.Option>
@@ -749,6 +767,19 @@ const EmailsPage: React.FC = () => {
                         onChange={(e) => setSeparator(e.target.value)}
                         style={{ width: 200 }}
                     />
+                    <Select
+                        placeholder="导入到分组（可选）"
+                        allowClear
+                        value={importGroupId}
+                        onChange={(value: number | undefined) => setImportGroupId(value)}
+                        style={{ width: 260 }}
+                    >
+                        {groups.map((group: EmailGroup) => (
+                            <Select.Option key={group.id} value={group.id}>
+                                {group.name}
+                            </Select.Option>
+                        ))}
+                    </Select>
                     <Dragger
                         beforeUpload={(file) => {
                             const reader = new FileReader();

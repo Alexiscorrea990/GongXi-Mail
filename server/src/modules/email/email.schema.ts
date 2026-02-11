@@ -29,6 +29,7 @@ export const listEmailSchema = z.object({
 export const importEmailSchema = z.object({
     content: z.string().min(1),
     separator: z.string().default('----'),
+    groupId: z.number().int().positive().optional(),
 });
 
 export type CreateEmailInput = z.infer<typeof createEmailSchema>;

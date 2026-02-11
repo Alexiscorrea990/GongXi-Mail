@@ -60,6 +60,8 @@ export const emailService = {
                 password: !!includeSecrets,
                 refreshToken: !!includeSecrets,
                 status: true,
+                groupId: true,
+                group: { select: { id: true, name: true } },
                 lastCheckAt: true,
                 errorMessage: true,
                 createdAt: true,
@@ -222,8 +224,15 @@ export const emailService = {
      * 批量导入
      */
     async import(input: ImportEmailInput) {
-        const { content, separator } = input;
+        const { content, separator, groupId } = input;
         const lines = content.split('\n').filter((line: string) => line.trim());
+
+        if (groupId !== undefined) {
+            const group = await prisma.emailGroup.findUnique({ where: { id: groupId } });
+            if (!group) {
+                throw new AppError('GROUP_NOT_FOUND', 'Email group not found', 404);
+            }
+        }
 
         let success = 0;
         let failed = 0;
@@ -266,12 +275,13 @@ export const emailService = {
                     throw new Error('Missing required fields');
                 }
 
-                const data: Prisma.EmailAccountUpdateInput = {
+                const data: Prisma.EmailAccountUncheckedUpdateInput = {
                     clientId,
                     refreshToken: encrypt(refreshToken),
                     status: 'ACTIVE',
                 };
                 if (password) data.password = encrypt(password);
+                if (groupId !== undefined) data.groupId = groupId;
 
                 // 检查是否存在
                 const exists = await prisma.emailAccount.findUnique({ where: { email } });
@@ -283,7 +293,7 @@ export const emailService = {
                     });
                 } else {
                     // 创建
-                    const createData: Prisma.EmailAccountCreateInput = {
+                    const createData: Prisma.EmailAccountUncheckedCreateInput = {
                         email,
                         clientId,
                         refreshToken: encrypt(refreshToken),
@@ -291,6 +301,9 @@ export const emailService = {
                     };
                     if (password) {
                         createData.password = encrypt(password);
+                    }
+                    if (groupId !== undefined) {
+                        createData.groupId = groupId;
                     }
                     await prisma.emailAccount.create({
                         data: createData,
@@ -309,8 +322,14 @@ export const emailService = {
     /**
      * 导出
      */
-    async export(ids?: number[], separator = '----') {
-        const where = ids?.length ? { id: { in: ids } } : {};
+    async export(ids?: number[], separator = '----', groupId?: number) {
+        const where: Prisma.EmailAccountWhereInput = {};
+        if (ids?.length) {
+            where.id = { in: ids };
+        }
+        if (groupId !== undefined) {
+            where.groupId = groupId;
+        }
 
         const accounts = await prisma.emailAccount.findMany({
             where,

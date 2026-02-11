@@ -77,8 +77,12 @@ export async function buildApp() {
 
     // SPA fallback - 现在可以安全使用 setNotFoundHandler
     fastify.setNotFoundHandler(async (request, reply) => {
+        const path = request.url.split('?')[0];
+        const isApiPath = path === '/api' || path.startsWith('/api/');
+        const isAdminPath = path === '/admin' || path.startsWith('/admin/');
+
         // 如果是 API 路由，返回 404 JSON
-        if (request.url.startsWith('/api') || request.url.startsWith('/admin')) {
+        if (isApiPath || isAdminPath) {
             return reply.status(404).send({
                 success: false,
                 error: { code: 'NOT_FOUND', message: 'Route not found' },
